@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Checkout E-Book</title>
+<link rel="stylesheet" href="styles.css"/>
+</head><body>
+<header class="site-header"><div class="container header-wrap">
+  <a class="brand" href="index.html" style="font-weight:700;color:#1e75c9;text-decoration:none;">Nama Brand</a>
+  <nav class="nav"><ul><li><a href="index.html">Beranda</a></li><li><a href="read.html">Baca</a></li></ul></nav>
+</div></header>
+
+<main class="container" style="padding:2rem 0">
+  <h1>Checkout</h1>
+  <p class="helper">Isi data, klik <strong>Kirim & WhatsApp</strong>. Admin akan verifikasi pembayaran lalu meng-ACC akses baca & unduh.</p>
+  <div class="card">
+    <form id="checkoutForm" class="grid col-2">
+      <div>
+        <label class="label" for="fullname">Nama Lengkap</label>
+        <input id="fullname" class="input" type="text" required />
+      </div>
+      <div>
+        <label class="label" for="email">Email (untuk akses)</label>
+        <input id="email" class="input" type="email" required />
+      </div>
+      <div>
+        <label class="label" for="whatsapp">No. WhatsApp</label>
+        <input id="whatsapp" class="input" type="tel" placeholder="62xxxxxxxxxxx" />
+      </div>
+      <div>
+        <label class="label" for="notes">Catatan</label>
+        <input id="notes" class="input" type="text" placeholder="Catatan tambahan (opsional)" />
+      </div>
+      <div style="grid-column:1/-1;display:flex;gap:.75rem;flex-wrap:wrap">
+        <button class="btn btn-accent" type="submit">Kirim & WhatsApp</button>
+        <a class="btn" style="border:1px solid #e5e7eb" href="read.html">Sudah di-ACC? Baca</a>
+      </div>
+      <div id="msg" class="helper" style="grid-column:1/-1"></div>
+    </form>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">© 2025 Nama Brand</div></footer>
+
+<script>
+const WA_ADMIN = "6281234567890"; // GANTI nomor admin
+const BOOK_TITLE = "Tingkatkan Produktivitas dan Fokus dengan Buku Digital Ini!";
+
+document.getElementById('checkoutForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fullname = document.getElementById('fullname').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const whatsapp = document.getElementById('whatsapp').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  if(!fullname || !email){ return alert('Nama & Email wajib diisi.'); }
+
+  // 1) catat checkout via Function
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ fullname, email, whatsapp, notes, book: BOOK_TITLE })
+  });
+  const data = await res.json().catch(()=>({}));
+  document.getElementById('msg').textContent = data.message || 'Terkirim. Membuka WhatsApp…';
+
+  // 2) buka WhatsApp admin
+  const text = encodeURIComponent(
+    `Halo Admin, saya ingin membeli e-book "${BOOK_TITLE}".\n\n`+
+    `Nama: ${fullname}\nEmail: ${email}\nWhatsApp: ${whatsapp || '-'}\nCatatan: ${notes || '-'}`
+  );
+  const url = `https://wa.me/${WA_ADMIN}?text=${text}`;
+  window.open(url,'_blank','noopener');
+});
+</script>
+</body></html>

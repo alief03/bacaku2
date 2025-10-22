@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin Panel</title>
+<link rel="stylesheet" href="styles.css"/>
+</head><body>
+<header class="site-header"><div class="container header-wrap">
+  <a class="brand" href="index.html" style="font-weight:700;color:#1e75c9;text-decoration:none;">Nama Brand</a>
+  <nav class="nav"><ul><li><a href="index.html">Beranda</a></li></ul></nav>
+  <div><button id="loginBtn" class="btn">Login</button><button id="logoutBtn" class="btn" style="display:none;border:1px solid #e5e7eb">Logout</button></div>
+</div></header>
+
+<main class="container" style="padding:2rem 0">
+  <h1>Admin: Checkout & Akses</h1>
+  <p class="helper">Kelola data checkout. Klik <span class="kbd">ACC</span> untuk memberi akses baca/unduh, atau <span class="kbd">Revoke</span> untuk mencabut akses.</p>
+
+  <div class="card">
+    <h3>Checkout Masuk</h3>
+    <table class="table" id="tbl">
+      <thead><tr><th>Nama</th><th>Email</th><th>WA</th><th>Catatan</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">© 2025 Nama Brand</div></footer>
+
+<!-- Netlify Identity widget (opsional, untuk proteksi admin) -->
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+const tbody = document.querySelector('#tbl tbody');
+
+async function refresh(){
+  const res = await fetch('/api/list-checkouts');
+  const {items=[]} = await res.json();
+  tbody.innerHTML = '';
+  items.forEach(it=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${it.fullname||'-'}</td>
+      <td>${it.email}</td>
+      <td>${it.whatsapp||'-'}</td>
+      <td>${it.notes||'-'}</td>
+      <td>${it.status}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-accent" data-acc="${it.email}">ACC</button>
+        <button class="btn" style="border:1px solid #e5e7eb" data-revoke="${it.email}">Revoke</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+document.addEventListener('click', async (e)=>{
+  const acc = e.target.getAttribute('data-acc');
+  const rev = e.target.getAttribute('data-revoke');
+  if(acc){ await fetch('/api/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:acc})}); refresh(); }
+  if(rev){ await fetch('/api/revoke',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:rev})}); refresh(); }
+});
+
+refresh();
+
+/* OPTIONAL: proteksi admin dengan Netlify Identity.
+   Setelah aktifkan Identity di Netlify, buat user admin & role "admin".
+   Di sini kita cukup menampilkan tombol login/logout. */
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+if(window.netlifyIdentity){
+  netlifyIdentity.on('init', user => {
+    toggle(user);
+  });
+  netlifyIdentity.on('login', user => { toggle(user); });
+  netlifyIdentity.on('logout', () => { toggle(null); });
+  loginBtn.onclick = ()=> netlifyIdentity.open();
+  logoutBtn.onclick = ()=> netlifyIdentity.logout();
+  function toggle(user){
+    const is = !!user;
+    loginBtn.style.display = is?'none':'inline-block';
+    logoutBtn.style.display = is?'inline-block':'none';
+  }
+}
+</script>
+</body></html>

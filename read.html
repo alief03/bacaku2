@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Baca & Unduh E-Book</title>
+<link rel="stylesheet" href="styles.css"/>
+</head><body>
+<header class="site-header"><div class="container header-wrap">
+  <a class="brand" href="index.html" style="font-weight:700;color:#1e75c9;text-decoration:none;">Nama Brand</a>
+  <nav class="nav"><ul><li><a href="index.html">Beranda</a></li><li><a href="checkout.html">Checkout</a></li></ul></nav>
+</div></header>
+
+<main class="container" style="padding:2rem 0">
+  <h1>Akses E-Book</h1>
+  <p class="helper">Masukkan <strong>email</strong> yang digunakan saat checkout. Jika sudah di-ACC admin, Anda dapat membaca & mengunduh.</p>
+
+  <div class="card">
+    <form id="accessForm" class="grid">
+      <div>
+        <label class="label" for="email">Email</label>
+        <input id="email" class="input" type="email" required />
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <button class="btn btn-primary" type="submit">Cek Akses</button>
+        <span id="status" class="helper"></span>
+      </div>
+    </form>
+
+    <div id="ebookArea" style="display:none;margin-top:1rem">
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <a id="dl" class="btn btn-accent" href="#" target="_blank" rel="noopener">Unduh PDF</a>
+        <button id="openInline" class="btn" style="border:1px solid #e5e7eb">Baca di Halaman</button>
+      </div>
+      <div id="viewer" class="card" style="margin-top:1rem;display:none">
+        <iframe id="pdfFrame" title="E-Book" style="width:100%;height:70vh;border:0"></iframe>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer"><div class="container">© 2025 Nama Brand</div></footer>
+
+<script>
+document.getElementById('accessForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const status = document.getElementById('status');
+  status.textContent = 'Memeriksa akses…';
+  const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+  const data = await res.json().catch(()=>({allowed:false}));
+  if(data.allowed){
+    status.textContent = 'Akses disetujui. Selamat membaca!';
+    const tokenUrl = `/api/get-ebook?email=${encodeURIComponent(email)}`;
+    document.getElementById('dl').href = tokenUrl + '&download=1';
+    document.getElementById('ebookArea').style.display = '';
+    document.getElementById('openInline').onclick = ()=>{
+      document.getElementById('pdfFrame').src = tokenUrl;
+      document.getElementById('viewer').style.display = '';
+    };
+  }else{
+    status.textContent = 'Akses belum tersedia. Silakan tunggu ACC admin atau hubungi kami.';
+    document.getElementById('ebookArea').style.display = 'none';
+  }
+});
+</script>
+</body></html>

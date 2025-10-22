@@ -1,0 +1,10 @@
+{
+  "name": "ebook-site",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^6.0.0",
+    "nanoid": "^5.0.0"
+  }
+}
